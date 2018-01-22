@@ -2,9 +2,30 @@
 <html>
 <head>
     <title></title>
+    <link rel=StyleSheet href="stylesheet.css" type="text/css" media=screen>
 </head>
 <body>
+    <div id="main">
+        <h1 class="title"> BLISTERING CONSCIENCE </h1>
+        <div class="newfiles">
+        <h1>{{submissionHeading}}</h1>
+        <label>Title <input v-model="title"></label>
+        <label>Description <input v-model="description"></label>
+        <label>Username <input v-model="username"></label>
+        <br>
+        <label>File <input type="file" value="SUPPPP"></label>
+        <br>
+        <button type="submit" class="submitbutton"> UPLOAD </button>
+    </div>
+        <h1 v-bind:class="headingClassName">{{ heading }}</h1>
+        <div class="container">
+            <div class="divs" v-for="pic in pics">
+                <img class="pics" v-bind:src="pic.image"> <p>{{pic.title}}</p>
+            </div>
+        </div>
+    </div>
     <script src="/js/vue.js"></script>
     <script src="/js/axios.min.js"></script>
+    <script src="/js/script.js"></script>
 </body>
 </html>
