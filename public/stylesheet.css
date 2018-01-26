@@ -1,5 +1,5 @@
-* {
-    background-color: rgb(249, 217, 198);
+body {
+    background-color: pink;
 }
 
 .title {
@@ -38,4 +38,84 @@
     border-radius: 10px;
     color: white;
     font-size: 30px;
+}
+
+.modal {
+    display: table;
+    width: 100%;
+    background-color: lightgrey;
+    position: fixed;
+    left: 10%;
+    top: 0;
+    margin: auto;
+}
+
+.inner {
+    display: table-cell;
+    height: 100%;
+    width: 80%;
+    position: fixed;
+    overflow-y: scroll;
+    z-index: 4;
+    width: 80%;
+    background-color: lightgrey !important;
+}
+
+.modal .hero {
+    display: block;
+    margin: auto;
+    height: 60vh;
+}
+
+.banner {
+    display: flex;
+    flex-flow: row;
+    justify-content: space-between;
+}
+.comment {
+    position: relative;
+    border: 2px black solid;
+    margin: 5px;
+    background-color: rgb(117, 227, 255);
+}
+
+.shader {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    background-color: rgba(10, 10, 10, .5);
+    z-index: -1;
+    top: 0;
+    left: 0;
+}
+
+.sig {
+    border-top: 5px black solid;
+}
+
+.commentbox {
+    height: 100px;
+    margin: 5px;
+    border: 1px black solid;
+    min-width: 70%;
+}
+
+.namebox {
+    margin: 5px;
+    border: 1px black solid;
+    min-width: 70%;
+}
+
+.noscroll {
+    overflow: hidden;
+}
+
+.arrow {
+    height: auto;
+    width: 7vw;
+    margin: auto 0;
+}
+
+.error-message {
+    color: red;
 }

@@ -13,11 +13,16 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "bcrypt": "^1.0.3",
+        "bcryptjs": "^2.4.3",
         "body-parser": "^1.15.2",
+        "connect-redis": "^3.3.3",
         "express": "^4.14.0",
+        "express-session": "^1.15.6",
         "knox": "^0.9.2",
         "multer": "^1.2.0",
         "spiced-pg": "spicedacademy/spiced-pg",
+        "twitter-text": "^2.0.3",
         "uid-safe": "^2.1.4"
     }
 }

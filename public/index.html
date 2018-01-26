@@ -6,23 +6,20 @@
 </head>
 <body>
     <div id="main">
+        <input type="hidden" name="_csrf" v-bind:value="csrfToken">
+        <div id="maindiv" v-bind:class="{ noscroll: show }">
         <h1 class="title"> BLISTERING CONSCIENCE </h1>
-        <div class="newfiles">
-        <h1>{{submissionHeading}}</h1>
-        <label>Title <input v-model="title"></label>
-        <label>Description <input v-model="description"></label>
-        <label>Username <input v-model="username"></label>
-        <br>
-        <label>File <input type="file" value="SUPPPP"></label>
-        <br>
-        <button type="submit" class="submitbutton"> UPLOAD </button>
-    </div>
+        <register v-if="loggedOut"></register>
+        <image-submission v-if="loggedIn" v-bind:img-id="imgId"></image-submission>
         <h1 v-bind:class="headingClassName">{{ heading }}</h1>
         <div class="container">
-            <div class="divs" v-for="pic in pics">
-                <img class="pics" v-bind:src="pic.image"> <p>{{pic.title}}</p>
+            <div class="divs" v-for="pic in pics" v-bind:databaseId="pic.id">
+                <a v-bind:href="pic.url"><img class="pics" v-bind:src="pic.image"> <p>{{pic.title}}</p></a>
             </div>
+            <p> {{loadMessage}} </p>
         </div>
+    </div>
+        <image-modal v-if="show" v-bind:img-id="imgId"></image-modal>
     </div>
     <script src="/js/vue.js"></script>
     <script src="/js/axios.min.js"></script>
