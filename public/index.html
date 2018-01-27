@@ -9,8 +9,8 @@
         <input type="hidden" name="_csrf" v-bind:value="csrfToken">
         <div id="maindiv" v-bind:class="{ noscroll: show }">
         <h1 class="title"> BLISTERING CONSCIENCE </h1>
-        <register v-if="loggedOut"></register>
-        <image-submission v-if="loggedIn" v-bind:img-id="imgId"></image-submission>
+        <register v-if="registerNow"></register>
+        <image-submission v-else v-bind:img-id="imgId"v-bind:logged-out="loggedOut"></image-submission>
         <h1 v-bind:class="headingClassName">{{ heading }}</h1>
         <div class="container">
             <div class="divs" v-for="pic in pics" v-bind:databaseId="pic.id">

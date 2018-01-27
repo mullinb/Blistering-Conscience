@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,
-    username VARCHAR(100) NOT NULL,
+    username VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(320) NOT NULL,
     hashpass VARCHAR(320) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -15,6 +15,7 @@ CREATE TABLE images(
     id SERIAL PRIMARY KEY,
     image VARCHAR(300) NOT NULL,
     title VARCHAR(255) NOT NULL,
+    username VARCHAR(100) REFERENCES users(username) NOT NULL,
     description TEXT,
     user_id INTEGER REFERENCES users(id) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -22,7 +23,8 @@ CREATE TABLE images(
 
 CREATE TABLE comments(
     id SERIAL PRIMARY KEY,
-    comment VARCHAR(1000) NOT NULL,
+    message VARCHAR(1000) NOT NULL,
+    username VARCHAR(100) REFERENCES users(username) NOT NULL,
     user_id INTEGER REFERENCES users(id) NOT NULL,
     image_id INTEGER REFERENCES images(id) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

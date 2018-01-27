@@ -2,6 +2,8 @@
 
     var lastUpdate;
 
+    var bus = new Vue();
+
     Vue.component('error-message', {
         props: ['message'],
         template: `<h2 class="error-message"> {{message}} </h2>`
@@ -71,6 +73,7 @@
                     .then(function(response) {
                         app.loggedIn = true;
                         app.loggedOut = false;
+                        app.currentUser = response.data.currentUser
                         console.log(response);
                     })
                 }
@@ -81,11 +84,11 @@
     Vue.component('login', {
         props: [],
         template:
-        `<div class="loginfields">
+        `<span class="loginfields">
             <error-message v-if="showError" v-bind:message="error.message"></error-message>
             <label>Username <input v-model="loginStuff.username"></label>
             <label>Password <input v-model="loginStuff.password"></label>
-        </div>`,
+        </span>`,
         data: function() {
             return {
                 loginStuff: {
@@ -113,21 +116,27 @@
                 })
                 }
             }
+        },
+        created: function () {
+            bus.$on('loginAttempt', function () {
+                this.login();
+            })
         }
-
     })
 
     Vue.component('image-submission', {
-        props: [],
+        props: ["loggedOut"],
         template:
             `<div class="newfiles">
                 <h1>{{submissionHeading}}</h1>
                 <label>Title <input v-model="formStuff.title"></label>
                 <label>Description <input v-model="formStuff.description"></label>
+                <login v-if="loggedOut"></login>
                 <br>
                 <label>File <input type="file" value="SUPPPP" v-on:change="chooseFile"></label>
                 <br>
                 <button type="submit" class="submitbutton" @click="upload"> UPLOAD </button>
+                <h3 v-if="loggedOut" class="submitbutton" @click="showRegister">Haven't registered yet? </h3>
             </div>`,
             data: function() {
                 return {
@@ -143,19 +152,31 @@
                 chooseFile: function(e) {
                     this.formStuff.file = e.target.files[0];
                 },
+                uploadCheck: function(e) {
+                    if (loggedOut) {
+                        bus.$emit('loginAttempt')
+                    } else {
+                        this.upload();
+                    }
+                },
                 upload: function(e) {
                     console.log(this.formStuff.file)
                     var formData = new FormData();
                     formData.append('file', this.formStuff.file)
                     formData.append('title', this.formStuff.title);
                     formData.append('description', this.formStuff.description);
-                    formData.append('username', this.formStuff.username);
+                    formData.append('username', app.currentUser);
                     console.log(formData);
                     axios.post('/upload', formData)
                     .then(function (response) {
                         console.log(response.data.newphoto[0]);
+                        response.data.newphoto[0].url = "/#" + response.data.newphoto[0].id;
                         app.pics.unshift(response.data.newphoto[0]);
                     });
+                },
+                showRegister: function(e) {
+                    app.registerNow = true;
+                    location.hash = "#register"
                 }
             }
     })
@@ -175,13 +196,12 @@
                     <p>Uploaded by {{modal.username}} on {{modal.timestamp}}</p>
                     <h3>{{modal.description}}</h3>
                     <h4>Snatch somethin phrasical ya wuss, n place it here, be ye not fearful!</h4>
-                    <h4> Name </h4> <input class="namebox" v-model="commentname">
                     <br>
                     <h4> Comment </h4> <input class="commentbox" v-model="commentmessage">
                     <br>
                     <button v-on:click="submitComment">Add Comment</button>
                     <div v-for="comment in comments">
-                        <commentslot v-bind:message="comment.message" v-bind:commentname="comment.name" v-bind:stamp="comment.created_at"></commentslot>
+                        <commentslot v-bind:message="comment.message" v-bind:commentname="comment.username" v-bind:stamp="comment.created_at"></commentslot>
                     </div>
                 </div>
             </div>
@@ -191,13 +211,9 @@
             submitComment: function() {
                 var self = this;
                 console.log(this.commentmessage);
-                var hashtags = getHashTags(this.commentmessage);
-                console.log(hashtags);
                 axios.post('/addComment', {
-                    message: hashtags[1],
-                    name: this.commentname,
+                    message: this.commentmessage,
                     imageId: window.location.hash.slice(1),
-                    // tags: hashtags
                 })
                 .then(function (response) {
                     console.log("success")
@@ -251,7 +267,6 @@
         data: function () {
             return {
                 comments: [],
-                commentname: '',
                 commentmessage: '',
                 modal: {
                     image: '',
@@ -294,13 +309,16 @@
         data: {
             loggedOut: true,
             loggedIn: false,
+            currentUser: '',
             page: 1,
             imgId: window.location.hash.slice(1),
             pics: [],
             show: false,
             loadMessage: "LAODING MOAR",
             heading: "These be latest photos Chauncey",
-            headingClassName: 'heading'
+            headingClassName: 'heading',
+            csrfToken: '',
+            registerNow: false
         },
         methods: {
             hide: function(e) {
@@ -329,15 +347,18 @@
             }
         },
         mounted: function() {
+            var self = this;
             if (window.location.hash.length > 1) {
                 this.show = true;
             }
             axios.get('/pictures')
             .then(function (response) {
-                for (var i = 0; i < response.data.length; i++) {
-                    app.pics.push(response.data[i]);
+                console.log(response);
+                for (var i = 0; i < response.data.results.length; i++) {
+                    app.pics.push(response.data.results[i]);
                     app.pics[i].url = "/#" + app.pics[i].id;
                 }
+                self.csrfToken = response.data.csrf;
             })
             .catch(function (error) {
                 console.log(error);
@@ -346,9 +367,11 @@
     });
 
     window.addEventListener('hashchange', function() {
-        if (window.location.hash.length > 1) {
+        if (window.location.hash.length > 1 && window.location.hash !== "#register") {
             app.show = true;
             app.imgId = window.location.hash.slice(1);
+        } else if (window.location.hash !== "#register") {
+            app.registerNow = false;
         }
     })
     var bottom = false;

@@ -58,7 +58,16 @@ exports.loginUser = ({username, password}) => {
         return exports.checkPassword(password, hashedPasswordFromDatabase)
     })
     .then((match) => {
-        return match;
+        if (match) {
+            db.query(
+                `SELECT * FROM users WHERE username = $1`, [username]
+            )
+            .then((results) => {
+                return results;
+            })
+        } else {
+            throw new Error ("passwords do not match.");
+        }
     })
 }
 

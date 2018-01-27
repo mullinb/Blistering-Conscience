@@ -76,7 +76,7 @@ const client = knox.createClient({
     bucket: 'fluxlymoppings'
 });
 
-app.use(csurf());
+// app.use(csurf());
 
 //================▲▲▲SET UP▲▲▲=========//
 
@@ -92,12 +92,12 @@ app.get("/pictures", (req, res) => {
             results.rows[i].image = config.s3Url.concat(results.rows[i].image);
         }
         res.json({
-            results: results.rows,
-            csrf: req.csrfToken()
+            results: results.rows
+            // csrf: req.csrfToken()
         });
     })
     .catch((err) => {
-        console.log("err");
+        console.log(err);
     })
 })
 
@@ -176,10 +176,13 @@ app.post('/register', user.checkRegister, (req, res) => {
 
 app.post('/login', user.checkLogin, (req, res) => {
     user.loginUser(req.body)
-    .then((id) => {
-        res.json({
-            userid: id
-        })
+    .then((results) => {
+        if (results) {
+            res.json({
+                success: true,
+                currentUser: results.rows[0].username,
+            }).end();
+        }
     })
     .catch((err) => {
         console.log(err);
@@ -188,16 +191,17 @@ app.post('/login', user.checkLogin, (req, res) => {
 
 app.post('/addComment', (req, res) => {
     db.query(
-        `INSERT INTO comments(message, name, image_id) VALUES ($1, $2, $3) returning *`, [req.body.message, req.body.name, req.body.imageId])
+        `INSERT INTO comments(message, username, image_id, user_id) VALUES ($1, $2, $3, $4) returning *`, [req.body.message, req.session.user.username, req.body.imageId, req.session.user.id])
     .then((results) => {
         res.json(results.rows);
     })
     .catch((err) => {
-        console.log("err");
+        console.log(err);
     })
 })
 
 app.post('/upload', uploader.single('file'), function(req, res) {
+    console.log(req.session.user);
     if (req.file) {
         let s3Request = client.put("/pics/" + req.file.filename, {
             'Content-Type': req.file.mimetype,
@@ -211,7 +215,7 @@ app.post('/upload', uploader.single('file'), function(req, res) {
         s3Request.on('response', s3Response => {
             let wasSuccessful = s3Response.statusCode == 200;
             db.query(
-                `INSERT INTO images(image, username, title, description) VALUES ($1, $2, $3, $4) returning *`, [req.file.filename, req.body.username, req.body.title, req.body.description])
+                `INSERT INTO images(image, user_id, title, description, username) VALUES ($1, $2, $3, $4, $5) returning *`, [req.file.filename, req.session.user.id, req.body.title, req.body.description, req.session.user.username])
                 .then((results) => {
                     console.log(results.rows)
                     results.rows[0].image = config.s3Url.concat(results.rows[0].image);
@@ -221,7 +225,7 @@ app.post('/upload', uploader.single('file'), function(req, res) {
                     });
                 })
                 .catch((err) => {
-                    console.log("err");
+                    console.log(err);
                 })
         })
     }
