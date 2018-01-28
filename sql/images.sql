@@ -8,7 +8,8 @@ CREATE TABLE users(
     username VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(320) NOT NULL,
     hashpass VARCHAR(320) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    anonymous BOOLEAN NOT NULL
 );
 
 CREATE TABLE images(
@@ -30,6 +31,8 @@ CREATE TABLE comments(
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+INSERT INTO users (username, email, hashpass) VALUES ('ANON', 'ANON@ANON.ANON', '398fva93evaakjnfaefaeflksjefsoiefhzvjnzejvnez');
 
 INSERT INTO images (image, username, title, description) VALUES ('MQwozP4QM5uK84XgPs4Q0oUIVWiwzN-w.jpg', 'funkychicken', 'Welcome to Berlin and the future!', 'This photo brings back so many great memories.');
 INSERT INTO images (image, username, title, description) VALUES ('wg8d94G_HrWdq7bU_2wT6Y6F3zrX-kej.jpg', 'discoduck', 'Elvis', 'We can''t go on together with suspicious minds.');

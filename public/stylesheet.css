@@ -6,7 +6,7 @@ body {
     font-style: italic;
     font-weight: bolder;
     font-family: Garamond;
-    font-size: 70px;
+    font-size: 5vw;
 }
 
 .pics {
@@ -26,7 +26,14 @@ body {
     border: 2px black solid;
 }
 
+.top {
+    display: grid;
+    height: auto;
+    grid-template-columns: 6fr 4fr;
+}
+
 .container {
+    position: relative;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
 }
@@ -38,6 +45,7 @@ body {
     border-radius: 10px;
     color: white;
     font-size: 30px;
+    cursor: pointer;
 }
 
 .modal {
@@ -118,4 +126,49 @@ body {
 
 .error-message {
     color: red;
+}
+
+.loginfields {
+    float: right;
+    border: black 5px solid;
+}
+
+.heading {
+    font-size: 3vw;
+    margin-bottom: 12px;
+}
+
+.container {
+    margin: 0;
+    padding-top: 15px;
+    border-top: 13px black solid;
+}
+
+.registerLink {
+    background-color: white;
+    color: black;
+    border-radius: 10px;
+    border: black 1px solid;
+    width: 300px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.currentUser {
+    font-size: 25px;
+    font-style: italic;
+    font-weight: bold;
+    font-family: Helvetica;
+    color: blue;
+    cursor: pointer;
+}
+
+.loggedIn {
+    float: right;
+}
+
+.logoutlink {
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
 }

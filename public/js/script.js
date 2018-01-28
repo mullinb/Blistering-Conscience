@@ -20,7 +20,8 @@
                 <label>Password <input type="password" v-model="registerStuff.password1" required></label>
                 <label>Enter again this password <input type="password" v-model="registerStuff.password2" required></label>
                 <br>
-                <button type="submit" class="submitbutton" @click="register"> REGISTER </button>
+                <button type="submit" class="submitbutton" @click="register"> BECOME DEATH ITSELF </button>
+                <h4 class="registerLink" @click="hideRegister">Button only of fools</h4>
             </div>`,
         data: function() {
             return {
@@ -72,23 +73,56 @@
                     axios.post('/register', this.registerStuff)
                     .then(function(response) {
                         app.loggedIn = true;
-                        app.loggedOut = false;
                         app.currentUser = response.data.currentUser
                         console.log(response);
                     })
                 }
+            },
+            hideRegister: function(e) {
+                app.registerNow = false;
+            }
+        }
+    })
+
+    Vue.component('logged-in', {
+        props: ["username"],
+        template: `<error-message v-if="errorMessage" v-bind:message="errorMessage"></error-message> <span v-else class="loggedIn"> Avast, {{username}}. Flee your destiny <br><a class="logoutlink" @click="logout">down this vorpal tunnel</a>(LOGOUT YOU RUBE)</span>`,
+        methods: {
+            logout: function () {
+                var self = this;
+                axios.get("/logout")
+                .then(function(response) {
+                    console.log(response);
+                    if (response.data.success) {
+                        self.$emit("logout");
+                    } else {
+
+                    }
+                })
+            }
+        },
+        data: function() {
+            return {
+                errorMessage: ''
             }
         }
     })
 
     Vue.component('login', {
-        props: [],
+        props: ["register-now"],
         template:
-        `<span class="loginfields">
+        `<div class="loginfields">
+            <register v-if="registerNow"></register>
+            <div v-else>
+            <h2> Log in and prove your worth, have ye no mettle, remain ya ANON as we proceed. <i>Think it over</i> </h2>
             <error-message v-if="showError" v-bind:message="error.message"></error-message>
             <label>Username <input v-model="loginStuff.username"></label>
             <label>Password <input v-model="loginStuff.password"></label>
-        </span>`,
+            <br>
+            <button type="submit" class="submitbutton" @click="login"><i>respawn</i></button>
+            <h4 class="registerLink" @click="showRegister">Need ye register? Click here <h3>you weasel</h3> </h4>
+            </div>
+        </div>`,
         data: function() {
             return {
                 loginStuff: {
@@ -103,40 +137,42 @@
         },
         methods: {
             login: function () {
+                var self = this;
                 if (!this.loginStuff.username.length > 0) {
                     this.error.message = 'Please enter a username.'
                     this.showError = true;
-                } else if (!this.loginStuff.password1.length > 0) {
+                } else if (!this.loginStuff.password.length > 0) {
                     this.error.message = 'Please enter a password.'
                     this.showError = true;
                 } else {
                 axios.post("/login", this.loginStuff)
                 .then(function(response) {
+                    console.log(response.data.success);
+                    if (response.data.success) {
+                        console.log('success');
+                        self.$emit("loggedin", response.data.userSession);
+                    }
                     console.log(response);
                 })
                 }
+            },
+            showRegister: function(e) {
+                app.registerNow = true;
             }
-        },
-        created: function () {
-            bus.$on('loginAttempt', function () {
-                this.login();
-            })
         }
     })
 
     Vue.component('image-submission', {
-        props: ["loggedOut"],
+        props: [],
         template:
             `<div class="newfiles">
                 <h1>{{submissionHeading}}</h1>
                 <label>Title <input v-model="formStuff.title"></label>
                 <label>Description <input v-model="formStuff.description"></label>
-                <login v-if="loggedOut"></login>
                 <br>
                 <label>File <input type="file" value="SUPPPP" v-on:change="chooseFile"></label>
                 <br>
-                <button type="submit" class="submitbutton" @click="upload"> UPLOAD </button>
-                <h3 v-if="loggedOut" class="submitbutton" @click="showRegister">Haven't registered yet? </h3>
+                <button type="submit" class="submitbutton" @click="upload"> UPLADD </button>
             </div>`,
             data: function() {
                 return {
@@ -152,13 +188,6 @@
                 chooseFile: function(e) {
                     this.formStuff.file = e.target.files[0];
                 },
-                uploadCheck: function(e) {
-                    if (loggedOut) {
-                        bus.$emit('loginAttempt')
-                    } else {
-                        this.upload();
-                    }
-                },
                 upload: function(e) {
                     console.log(this.formStuff.file)
                     var formData = new FormData();
@@ -172,11 +201,13 @@
                         console.log(response.data.newphoto[0]);
                         response.data.newphoto[0].url = "/#" + response.data.newphoto[0].id;
                         app.pics.unshift(response.data.newphoto[0]);
+                        this.formStuff = {
+                            title: '',
+                            description: '',
+                            file: null
+                        }
+                        this.submissionHeading = "That's one down, let it load n don't be shy bout showin what is you've got <i> honey </i>"
                     });
-                },
-                showRegister: function(e) {
-                    app.registerNow = true;
-                    location.hash = "#register"
                 }
             }
     })
@@ -193,13 +224,14 @@
                 </div>
                 <div class="comments">
                     <h1>{{modal.title}}</h1>
-                    <p>Uploaded by {{modal.username}} on {{modal.timestamp}}</p>
                     <h3>{{modal.description}}</h3>
+                    <p>Uploaded by {{modal.username}} on {{modal.timestamp}}</p>
+                    <br>
+
                     <h4>Snatch somethin phrasical ya wuss, n place it here, be ye not fearful!</h4>
+                    <textarea class="commentbox" v-model="commentmessage" placeholder="spittle receptacle <BR> <BR> ERROR CRASHING AND DELETING HARD DRIVE"></textarea>
                     <br>
-                    <h4> Comment </h4> <input class="commentbox" v-model="commentmessage">
-                    <br>
-                    <button v-on:click="submitComment">Add Comment</button>
+                    <button v-on:click="submitComment">Secrete Smomment</button>
                     <div v-for="comment in comments">
                         <commentslot v-bind:message="comment.message" v-bind:commentname="comment.username" v-bind:stamp="comment.created_at"></commentslot>
                     </div>
@@ -307,7 +339,6 @@
     var app = new Vue({
         el: '#main',
         data: {
-            loggedOut: true,
             loggedIn: false,
             currentUser: '',
             page: 1,
@@ -331,8 +362,7 @@
                 .then(function (response) {
                     console.log(response.status);
                     if (response.status === 204) {
-                        console.log("end of the line");
-                        self.loadMessage = "END OF STREAM";
+                        self.loadMessage = "END OF STREAM/PC LOADLETTER";
                     }
                     for (var i = 0; i < response.data.length; i++) {
                         app.pics.push(response.data[i]);
@@ -344,6 +374,15 @@
                     console.log(error);
                 });
 
+            },
+            logUserIn: function(userSession) {
+                console.log(userSession);
+                this.loggedIn = true;
+                this.currentUser = userSession.username;
+            },
+            logout: function() {
+                this.loggedIn = false;
+                this.currentUser = '';
             }
         },
         mounted: function() {
@@ -358,7 +397,10 @@
                     app.pics.push(response.data.results[i]);
                     app.pics[i].url = "/#" + app.pics[i].id;
                 }
-                self.csrfToken = response.data.csrf;
+                if (response.data.userSession !== undefined) {
+                    self.loggedIn = true;
+                    self.currentUser = response.data.userSession.username;
+                }
             })
             .catch(function (error) {
                 console.log(error);

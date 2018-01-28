@@ -10,10 +10,12 @@ exports.checkRegister = (req, res, next) => {
     console.log(req.body);
     let {username, email, password1, password2} = req.body;
     let holdEmail = email;
-    if (!username.length > 0 || username.indexOf(" ") >= 0) {
+    if (username.indexOf(" ") >= 0) {
         res.json({
             error: 0
         }).end();
+    } else if (!username.length > 0) {
+        username = "Anonymous";
     } else if (!email.length > 0 || email.indexOf(" ") >= 0 || email.split("@").length !== 2) {
         res.json({
             error: 1
@@ -51,15 +53,15 @@ exports.checkLogin = (req, res, next) => {
     }
 }
 exports.loginUser = ({username, password}) => {
-    db.query(
+    return db.query(
         `SELECT hashpass FROM users WHERE username = $1`, [username]
     )
-    .then((hashedPasswordFromDatabase) => {
-        return exports.checkPassword(password, hashedPasswordFromDatabase)
+    .then((result) => {
+        return exports.checkPassword(password, result.rows[0].hashpass)
     })
     .then((match) => {
         if (match) {
-            db.query(
+            return db.query(
                 `SELECT * FROM users WHERE username = $1`, [username]
             )
             .then((results) => {

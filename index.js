@@ -32,7 +32,7 @@ var diskStorage = multer.diskStorage({
 var uploader = multer({
     storage: diskStorage,
     limits: {
-        fileSize: 2097152
+        fileSize: 12097152
     }
 });
 
@@ -56,8 +56,6 @@ app.use(session({
     secret: process.env.SESSION_SECRET || require('./secrets').sessionSecret
 }));
 
-app.use(bodyParser.json({
-}));
 
 app.use(bodyParser.json({
     extended: false
@@ -85,15 +83,23 @@ const client = knox.createClient({
 app.use(express.static('./public'));
 
 
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.json({
+        success: true
+    }).end();
+})
+
 app.get("/pictures", (req, res) => {
+    console.log(req.session);
     db.query(`SELECT * FROM images order by ID desc LIMIT 12`)
     .then((results) => {
         for (var i=0; i < results.rows.length; i++) {
             results.rows[i].image = config.s3Url.concat(results.rows[i].image);
         }
         res.json({
-            results: results.rows
-            // csrf: req.csrfToken()
+            results: results.rows,
+            userSession: req.session.user
         });
     })
     .catch((err) => {
@@ -157,7 +163,6 @@ app.get('/comments/:id', (req, res) => {
 app.post('/register', user.checkRegister, (req, res) => {
     user.registerUser(req.body)
     .then((results) => {
-        console.log(results.rows[0])
         req.session.user = {
             username: results.rows[0].username,
             id: results.rows[0].id
@@ -165,7 +170,7 @@ app.post('/register', user.checkRegister, (req, res) => {
         if (results) {
             res.json({
                 success: true,
-                currentUser: results.rows[0].username,
+                userSession: req.session.user
             }).end();
         }
     })
@@ -178,9 +183,13 @@ app.post('/login', user.checkLogin, (req, res) => {
     user.loginUser(req.body)
     .then((results) => {
         if (results) {
+            req.session.user = {
+                username: results.rows[0].username,
+                id: results.rows[0].id
+            };
             res.json({
                 success: true,
-                currentUser: results.rows[0].username,
+                userSession: req.session.user
             }).end();
         }
     })
@@ -190,8 +199,15 @@ app.post('/login', user.checkLogin, (req, res) => {
 })
 
 app.post('/addComment', (req, res) => {
+    if (req.session.user === undefined) {
+        var userid = 16;
+        var username = "ANON";
+    } else {
+        var userid = req.session.user.id;
+        var username = req.session.user.username;
+    }
     db.query(
-        `INSERT INTO comments(message, username, image_id, user_id) VALUES ($1, $2, $3, $4) returning *`, [req.body.message, req.session.user.username, req.body.imageId, req.session.user.id])
+        `INSERT INTO comments(message, username, image_id, user_id) VALUES ($1, $2, $3, $4) returning *`, [req.body.message, username, req.body.imageId, userid])
     .then((results) => {
         res.json(results.rows);
     })
@@ -202,6 +218,14 @@ app.post('/addComment', (req, res) => {
 
 app.post('/upload', uploader.single('file'), function(req, res) {
     console.log(req.session.user);
+    if (req.session.user === undefined) {
+        var userid = 16;
+        var username = "ANON";
+    } else {
+        var userid = req.session.user.id;
+        var username = req.session.user.username;
+    }
+    console.log(userid, username)
     if (req.file) {
         let s3Request = client.put("/pics/" + req.file.filename, {
             'Content-Type': req.file.mimetype,
@@ -211,11 +235,11 @@ app.post('/upload', uploader.single('file'), function(req, res) {
 
         let readStream = fs.createReadStream(req.file.path);
         readStream.pipe(s3Request);
-
+        console.log(userid, username)
         s3Request.on('response', s3Response => {
             let wasSuccessful = s3Response.statusCode == 200;
             db.query(
-                `INSERT INTO images(image, user_id, title, description, username) VALUES ($1, $2, $3, $4, $5) returning *`, [req.file.filename, req.session.user.id, req.body.title, req.body.description, req.session.user.username])
+                `INSERT INTO images(image, user_id, title, description, username) VALUES ($1, $2, $3, $4, $5) returning *`, [req.file.filename, userid, req.body.title, req.body.description, username])
                 .then((results) => {
                     console.log(results.rows)
                     results.rows[0].image = config.s3Url.concat(results.rows[0].image);
