@@ -70,8 +70,8 @@ if (process.env.NODE_ENV == 'production') {
     secrets = require('./secrets'); // secrets.json is in .gitignore
 }
 const client = knox.createClient({
-    key: secrets.AWS_KEY,
-    secret: secrets.AWS_SECRET,
+    key: process.env.AWS_KEY || secrets.AWS_KEY,
+    secret: process.env.AWS_SECRET || secrets.AWS_SECRET,
     bucket: 'fluxlymoppings'
 });
 
