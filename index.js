@@ -266,4 +266,4 @@ app.post('/upload', uploader.single('file'), function(req, res) {
 
 
 
-app.listen(8080, console.log("battle control online"));
+app.listen(process.env.PORT || 8080, console.log("battle control online"));
