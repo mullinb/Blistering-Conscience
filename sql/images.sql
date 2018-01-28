@@ -18,6 +18,7 @@ CREATE TABLE images(
     title VARCHAR(255) NOT NULL,
     username VARCHAR(100) REFERENCES users(username) NOT NULL,
     description TEXT,
+    hashtags VARCHAR(1000),
     user_id INTEGER REFERENCES users(id) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -28,6 +29,7 @@ CREATE TABLE comments(
     username VARCHAR(100) REFERENCES users(username) NOT NULL,
     user_id INTEGER REFERENCES users(id) NOT NULL,
     image_id INTEGER REFERENCES images(id) NOT NULL,
+    hashtags VARCHAR(1000),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -38,13 +40,8 @@ INSERT INTO images (image, username, title, description) VALUES ('MQwozP4QM5uK84
 INSERT INTO images (image, username, title, description) VALUES ('wg8d94G_HrWdq7bU_2wT6Y6F3zrX-kej.jpg', 'discoduck', 'Elvis', 'We can''t go on together with suspicious minds.');
 INSERT INTO images (image, username, title, description) VALUES ('XCv4AwJdm6QuzjenFPKJocpipRNNMwze.jpg', 'discoduck', 'Hello Berlin', 'This is going to be worth a lot of money one day.');
 
-CREATE TABLE comments(
-    id SERIAL PRIMARY KEY,
-    comment VARCHAR(1000) NOT NULL,
-    username VARCHAR(255) NOT NULL,
-    image_id INTEGER REFERENCES images(id) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
+ALTER TABLE comments
 
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,

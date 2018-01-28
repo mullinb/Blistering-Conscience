@@ -1,3 +1,7 @@
+*   {
+    box-sizing: border-box;
+}
+
 body {
     background-color: pink;
 }
@@ -16,14 +20,6 @@ body {
     border: 0px white solid;
     position: relative;
     margin: 2.5%;
-}
-
-.divs {
-    display: inline-block;
-    width: 30vw;
-    height: 70vh;
-    border-radius: 20px;
-    border: 2px black solid;
 }
 
 .top {
@@ -101,6 +97,10 @@ body {
     border-top: 5px black solid;
 }
 
+.newfiles {
+    border: 5px;
+}
+
 .commentbox {
     height: 100px;
     margin: 5px;
@@ -136,12 +136,55 @@ body {
 .heading {
     font-size: 3vw;
     margin-bottom: 12px;
+    grid-row: 2;
 }
 
-.container {
+.masonry {
+    max-width: 100%;
     margin: 0;
     padding-top: 15px;
     border-top: 13px black solid;
+    width: 100%;
+    display: flex;
+    flex-flow: column wrap;
+}
+
+.masonry-panel {
+    overflow: hidden;
+    width: 33%;
+    border-radius: 20px;
+    border: 2px black solid;
+    margin-bottom: 10px;
+    transition: all 500ms linear;
+}
+
+@media(min-width: 992px) {
+  .masonry-panel {
+      width: 24%;
+    }
+}
+
+@media(max-width: 650px) {
+  .masonry-panel {
+      width: 98%;
+    }
+}
+
+
+
+.masonry-panel-content {
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.masonry-panel-content img {
+    max-height: 300px;
+    width: 95%;
+    overflow: hidden;
+    object-fit: cover;
 }
 
 .registerLink {
@@ -164,11 +207,28 @@ body {
 }
 
 .loggedIn {
-    float: right;
+    vertical-align: text-bottom;
+    text-align: right;
+    grid-row: 2;
+}
+
+.loggedIn p {
+    margin: 0;
+    margin-top: 30px;
+    margin-bottom: 12px;
 }
 
 .logoutlink {
     color: blue;
     text-decoration: underline;
     cursor: pointer;
+}
+
+.slide-fade-enter-active {
+  transition: all 1s ease;
+}
+
+.slide-fade-enter {
+  transform: translateY(50px);
+  opacity: 0;
 }

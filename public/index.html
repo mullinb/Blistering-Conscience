@@ -9,20 +9,22 @@
         <h1 class="title"> BLISTERING CONSCIENCE </h1>
         <div id="maindiv" v-bind:class="{ noscroll: show }">
         <div class="top">
-        <image-submission v-bind:img-id="imgId"></image-submission>
-        <login v-if="!loggedIn" v-bind:register-now="registerNow" v-on:loggedin="logUserIn"></login>
-        <input type="hidden" name="_csrf" v-bind:value="csrfToken">
-        <logged-in v-if="loggedIn" v-bind:username="currentUser" v-on:logout="logout"></logged-in>
-        <h2 v-bind:class="headingClassName">{{ heading }} <span class="currentUser">{{currentUser}}</span></h2>
-    </div>
-        <div class="container">
-            <div class="divs" v-for="pic in pics" v-bind:databaseId="pic.id">
-                <a v-bind:href="pic.url"><img class="pics" v-bind:src="pic.image"> <p>{{pic.title}}</p></a>
-            </div>
-            <p> {{loadMessage}} </p>
+            <image-submission v-bind:img-id="imgId"></image-submission>
+            <login v-if="!loggedIn" v-bind:register-now="registerNow" v-on:loggedin="logUserIn"></login>
+            <input type="hidden" name="_csrf" v-bind:value="csrfToken">
+            <h2 v-bind:class="headingClassName">{{ heading }} <span class="currentUser">{{currentUser}}</span></h2>
+            <logged-in v-if="loggedIn" v-bind:username="currentUser" v-on:logout="logout"></logged-in>
         </div>
+        <transition-group name="slide-fade" tag="div" class="masonry">
+            <div class="masonry-panel" v-for="pic in pics" v-bind:databaseId="pic.id"  v-bind:key="pic.id">
+                    <div class="masonry-panel-content">
+                        <a v-bind:href="pic.url"><img class="pics" v-bind:src="pic.image"> <h2>{{pic.title}}</h2></a> <p v-html="pic.description"></p>
+                    </div>
+            </div>
+        </transition-group>
     </div>
-        <image-modal v-if="show" v-bind:img-id="imgId"></image-modal>
+    <p> {{loadMessage}} </p>
+    <image-modal v-if="show" v-bind:img-id="imgId"></image-modal>
     </div>
     <script src="/js/vue.js"></script>
     <script src="/js/axios.min.js"></script>

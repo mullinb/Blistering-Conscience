@@ -8,6 +8,7 @@ var session = require('express-session');
 var Store = require('connect-redis')(session);
 let user = require('./models/user');
 const csurf = require('csurf');
+var twitter = require('twitter-text');
 
 
 let dbUrl = process.env.DATABASE_URL || `postgres:${require('./secrets').dbUser}@localhost:5432/imageboard`;
@@ -201,15 +202,20 @@ app.post('/login', user.checkLogin, (req, res) => {
 app.post('/addComment', (req, res) => {
     if (req.session.user === undefined) {
         var userid = 16;
-        var username = "ANON";
+        var username = 'ANON';
     } else {
         var userid = req.session.user.id;
         var username = req.session.user.username;
     }
+    console.log(req.body.imageId);
+    var message = twitter.htmlEscape(req.body.message);
+    hashtags = twitter.extractHashtags(message);
+    message = twitter.autoLinkHashtags(message);
+    message = message.split("https://twitter.com/search?q=%23").join("/#hashtags/").split(' rel="nofollow"').join("");
     db.query(
-        `INSERT INTO comments(message, username, image_id, user_id) VALUES ($1, $2, $3, $4) returning *`, [req.body.message, username, req.body.imageId, userid])
+        `INSERT INTO comments(message, username, image_id, user_id, hashtags) VALUES ($1, $2, $3, $4, $5) returning *`, [message, username, req.body.imageId, userid, hashtags])
     .then((results) => {
-        res.json(results.rows);
+        res.json(results.rows).end();
     })
     .catch((err) => {
         console.log(err);
@@ -225,7 +231,10 @@ app.post('/upload', uploader.single('file'), function(req, res) {
         var userid = req.session.user.id;
         var username = req.session.user.username;
     }
-    console.log(userid, username)
+    var description = twitter.htmlEscape(req.body.description);
+    hashtags = twitter.extractHashtags(description);
+    description = twitter.autoLinkHashtags(description);
+    description = description.split("https://twitter.com/search?q=%23").join("/#hashtags/").split(' rel="nofollow"').join("");
     if (req.file) {
         let s3Request = client.put("/pics/" + req.file.filename, {
             'Content-Type': req.file.mimetype,

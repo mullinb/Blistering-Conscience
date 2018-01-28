@@ -1,8 +1,141 @@
 (function() {
 
-    var lastUpdate;
+    const CLASSES = {
+        MASONRY: 'masonry',
+        PANEL  : 'masonry-panel',
+        PAD    : 'masonry-pad',
+    }
 
-    var bus = new Vue();
+    class Masonry {
+
+    constructor(el) {
+        this.container = el
+        this.panels = document.querySelectorAll(`.masonry-panel`)
+        this.state = {
+            heights: [],
+        }
+        this.layout()
+    }
+    /**
+    * Reset the layout by removing padding elements, resetting heights
+    * reference and removing the container inline style
+    */
+    reset() {
+        const {
+            container,
+        } = this
+        this.state.heights = []
+        const fillers = container.querySelectorAll(`.${CLASSES.PAD}`)
+        if (fillers.length) {
+            for(let f = 0; f < fillers.length; f++) {
+                fillers[f].parentNode.removeChild(fillers[f])
+            }
+        }
+        container.removeAttribute('style')
+    }
+    /**
+    * Iterate through panels and work out the height of the layout
+    */
+        /**
+    * Set the layout height based on referencing the content cumulative height
+    * This probably doesn't need its own function but felt right to be nice
+    * and neat
+    */
+    setLayout() {
+        const {
+            container,
+            state,
+        } = this
+        const {
+            heights,
+        } = state
+        this.state.maxHeight = (Math.max(...heights));
+        console.log(this.state.maxHeight);
+        container.style.height = `${this.state.maxHeight + 150}px`
+    }
+    // /**
+    //   * JavaScript method for setting order of each panel based on panels.length and desired number of columns
+    // */
+    setOrders() {
+        const {
+            panels,
+        } = this
+        console.log(this.panels);
+        var idx = 0;
+        var element = document.querySelector('.masonry-panel'),
+            style = window.getComputedStyle(element),
+            width = style.getPropertyValue('width');
+            width = width.replace('px', '');
+            width = width/window.innerWidth;
+
+        var cols = Math.ceil(1/width) - 1;
+        panels.forEach((panel, idx) => {
+            panel.style.order = ((idx + 1) % cols === 0) ? cols : (idx + 1) % cols
+        })
+    }
+
+    populateHeights() {
+        const {
+            panels,
+            state,
+        } = this
+        const {
+            heights,
+        } = state
+        for (let p = 0; p < panels.length; p++) {
+            const panel = panels[p]
+            const {
+                order: cssOrder,
+                msFlexOrder,
+                height,
+            } = getComputedStyle(panel)
+            const order = cssOrder || msFlexOrder
+            if (!heights[order - 1]) heights[order - 1] = 0
+                heights[order - 1] += parseInt(height, 10)
+        }
+    }
+    /**
+    * Pad out layout "columns" with padding elements that make heights equal
+    */
+    pad() {
+        const {
+            container,
+        } = this
+        const {
+            heights,
+            maxHeight,
+        } = this.state
+        heights.map((height, idx) => {
+            if (height < maxHeight && height > 0) {
+                const pad             = document.createElement('div')
+                pad.className         = CLASSES.PAD
+                pad.style.height      = `${maxHeight - height}px`
+                pad.style.order       = idx + 1
+                pad.style.msFlexOrder = idx + 1
+                container.appendChild(pad)
+            }
+        })
+    }
+/**
+* Resets and lays out elements
+*/
+    layout() {
+        this.reset()
+        this.setOrders()
+        this.populateHeights()
+        this.setLayout()
+        this.pad()
+        }
+    }
+
+  //     * To make responsive, onResize layout again
+  //   * NOTE:: For better performance, please debounce this!
+  // */
+    window.addEventListener('resize', () => {
+        window.myMasonry = new Masonry(document.querySelector(`.${CLASSES.MASONRY}`))
+        myMasonry.layout()
+    })
+
 
     Vue.component('error-message', {
         props: ['message'],
@@ -40,7 +173,6 @@
         methods: {
             register: function() {
                 var email = this.registerStuff.email;
-                console.log(this.registerStuff.email);
                 if (!this.registerStuff.username.length > 0) {
                     this.error.message = 'Please enter a username.'
                     this.showError = true;
@@ -51,11 +183,9 @@
                     this.error.message = 'Please enter an email address.'
                     this.showError = true;
                 } else if (this.registerStuff.email.indexOf(" ") >= 0) {
-                    console.log(this.registerStuff.email);
                     this.error.message = 'Please enter a valid email address.'
                     this.showError = true;
                 } else if (this.registerStuff.email.split("@").length !== 2) {
-                    console.log(this.registerStuff.email);
                     this.error.message = 'Please enter a valid email address.'
                     this.showError = true;
                 } else if (!this.registerStuff.password1.length > 0) {
@@ -69,12 +199,10 @@
                     this.showError = true;
                 } else {
                     this.registerStuff.email = email;
-                    console.log(this.registerStuff)
                     axios.post('/register', this.registerStuff)
                     .then(function(response) {
                         app.loggedIn = true;
                         app.currentUser = response.data.currentUser
-                        console.log(response);
                     })
                 }
             },
@@ -86,13 +214,12 @@
 
     Vue.component('logged-in', {
         props: ["username"],
-        template: `<error-message v-if="errorMessage" v-bind:message="errorMessage"></error-message> <span v-else class="loggedIn"> Avast, {{username}}. Flee your destiny <br><a class="logoutlink" @click="logout">down this vorpal tunnel</a>(LOGOUT YOU RUBE)</span>`,
+        template: `<div class=loggedIn><p>Avast, {{username}}. Flee your destiny <br><a class="logoutlink" @click="logout">down this vorpal tunnel</a>(LOGOUT YOU RUBE)</p></div>`,
         methods: {
             logout: function () {
                 var self = this;
                 axios.get("/logout")
                 .then(function(response) {
-                    console.log(response);
                     if (response.data.success) {
                         self.$emit("logout");
                     } else {
@@ -114,7 +241,7 @@
         `<div class="loginfields">
             <register v-if="registerNow"></register>
             <div v-else>
-            <h2> Log in and prove your worth, have ye no mettle, remain ya ANON as we proceed. <i>Think it over</i> </h2>
+            <h1> Log in and prove your worth, have ye no mettle, remain ya ANON as we proceed. <i>Think it over</i> </h1>
             <error-message v-if="showError" v-bind:message="error.message"></error-message>
             <label>Username <input v-model="loginStuff.username"></label>
             <label>Password <input v-model="loginStuff.password"></label>
@@ -147,12 +274,9 @@
                 } else {
                 axios.post("/login", this.loginStuff)
                 .then(function(response) {
-                    console.log(response.data.success);
                     if (response.data.success) {
-                        console.log('success');
                         self.$emit("loggedin", response.data.userSession);
                     }
-                    console.log(response);
                 })
                 }
             },
@@ -166,7 +290,7 @@
         props: [],
         template:
             `<div class="newfiles">
-                <h1>{{submissionHeading}}</h1>
+                <h1>{{submissionHeading}}<i>{{loversTitle}}</i></h1>
                 <label>Title <input v-model="formStuff.title"></label>
                 <label>Description <input v-model="formStuff.description"></label>
                 <br>
@@ -181,7 +305,8 @@
                         description: '',
                         file: null
                     },
-                    submissionHeading: "Upload a new one you Wumper, ye be well invited"
+                    submissionHeading: "Upload a new one you Wumper, ye be well invited",
+                    loversTitle: ''
                 }
             },
             methods: {
@@ -189,33 +314,34 @@
                     this.formStuff.file = e.target.files[0];
                 },
                 upload: function(e) {
-                    console.log(this.formStuff.file)
+                    var self = this;
                     var formData = new FormData();
                     formData.append('file', this.formStuff.file)
                     formData.append('title', this.formStuff.title);
                     formData.append('description', this.formStuff.description);
                     formData.append('username', app.currentUser);
-                    console.log(formData);
                     axios.post('/upload', formData)
                     .then(function (response) {
-                        console.log(response.data.newphoto[0]);
                         response.data.newphoto[0].url = "/#" + response.data.newphoto[0].id;
                         app.pics.unshift(response.data.newphoto[0]);
-                        this.formStuff = {
+                        self.formStuff = {
                             title: '',
                             description: '',
                             file: null
-                        }
-                        this.submissionHeading = "That's one down, let it load n don't be shy bout showin what is you've got <i> honey </i>"
-                    });
-                }
+                        };
+                        console.log(self.formStuff);
+                        self.submissionHeading = "That's one down, let it load n don't be shy bout showin what is you've got ";
+                        self.loversTitle = "honey";
+                        myMasonry.layout();
+                })
             }
+        }
     })
 
     Vue.component('image-modal', {
         props: ['imgId'],
-        template: `
-        <div class="modal">
+        template:
+        `<div class="modal">
             <div class="shader" @click="hide">
             </div>
             <div class="inner">
@@ -242,13 +368,11 @@
         methods: {
             submitComment: function() {
                 var self = this;
-                console.log(this.commentmessage);
                 axios.post('/addComment', {
                     message: this.commentmessage,
                     imageId: window.location.hash.slice(1),
                 })
                 .then(function (response) {
-                    console.log("success")
                     if (response.data) {
                         self.comments.unshift(response.data[0])
                     }
@@ -264,7 +388,6 @@
                 value = value || e.target.parentElement.attributes.databaseid.value;
                 axios.get('/pictures/' + value)
                 .then((response) => {
-                    console.log(response.status);
                     if (response.data) {
                         self.modal = {
                             image: response.data[0].image,
@@ -310,7 +433,6 @@
             }
         },
         mounted: function() {
-            console.log('remounting')
             this.expand(null, window.location.hash.slice(1))
             var self = this;
             axios.get('/comments/' + window.location.hash.slice(1))
@@ -325,7 +447,6 @@
         },
         watch: {
             imgId: function(val) {
-                console.log(val);
                 this.expand(null, window.location.hash.slice(1));
             }
         }
@@ -333,16 +454,17 @@
 
     Vue.component('commentslot', {
         props: ['message', "commentname", "stamp"],
-        template: "<div class='comment'><h4>{{message}}</h4><br><h5 class='sig'>{{commentname}} on {{stamp}}</h5></div>"
+        template: `<div class='comment'><h4 v-html="message"></h4><br><h5 class='sig'>{{commentname}} on {{stamp}}</h5></div>`
     })
 
     var app = new Vue({
         el: '#main',
         data: {
+            hashtagFeed: false,
             loggedIn: false,
             currentUser: '',
             page: 1,
-            imgId: window.location.hash.slice(1),
+            imgId: '',
             pics: [],
             show: false,
             loadMessage: "LAODING MOAR",
@@ -360,14 +482,14 @@
                 var self = this;
                 axios.get('/pictures/page/' + this.page++)
                 .then(function (response) {
-                    console.log(response.status);
                     if (response.status === 204) {
                         self.loadMessage = "END OF STREAM/PC LOADLETTER";
-                    }
-                    for (var i = 0; i < response.data.length; i++) {
-                        app.pics.push(response.data[i]);
-                        app.pics[i].url = "/#" + app.pics[i].id;
-                        console.log(app.pics[i]);
+                    } else {
+                        for (var i = 0; i < response.data.length; i++) {
+                            app.pics.push(response.data[i]);
+                            app.pics[i].url = "/#" + app.pics[i].id;
+                        }
+                        myMasonry.layout();
                     }
                 })
                 .catch(function (error) {
@@ -376,7 +498,6 @@
 
             },
             logUserIn: function(userSession) {
-                console.log(userSession);
                 this.loggedIn = true;
                 this.currentUser = userSession.username;
             },
@@ -392,11 +513,11 @@
             }
             axios.get('/pictures')
             .then(function (response) {
-                console.log(response);
                 for (var i = 0; i < response.data.results.length; i++) {
                     app.pics.push(response.data.results[i]);
                     app.pics[i].url = "/#" + app.pics[i].id;
                 }
+                myMasonry.layout();
                 if (response.data.userSession !== undefined) {
                     self.loggedIn = true;
                     self.currentUser = response.data.userSession.username;
@@ -406,26 +527,30 @@
                 console.log(error);
             });
         },
+        created: function() {
+            setTimeout(makeMasonry, 200);
+        }
     });
 
     window.addEventListener('hashchange', function() {
-        if (window.location.hash.length > 1 && window.location.hash !== "#register") {
+        if (window.location.hash.length > 1 && !(window.location.hash.indexOf("hashtags") > -1)) {
             app.show = true;
             app.imgId = window.location.hash.slice(1);
-        } else if (window.location.hash !== "#register") {
-            app.registerNow = false;
+        } else if (window.location.hash.indexOf("#hashtags/") === 0) {
+            app.hashtagFeed = true;
+            app.show = false;
+            app.imgId = '';
         }
     })
     var bottom = false;
     window.onscroll = function(e) {
         var d = document.documentElement;
         var offset = d.scrollTop + window.innerHeight;
-        var height = d.offsetHeight;
+        var height = d.scrollHeight;
 
-        // console.log('offset = ' + offset);
-        // console.log('height = ' + height);
+        console.log(offset, height)
 
-        if (offset === height) {
+        if (offset + 10 > height) {
             var page = document.getElementById("main");
             if (!page.classList.contains("noscroll")) {
                 //do nothing
@@ -448,7 +573,6 @@
         if (page.classList.contains("noscroll")) {
             if (e.keyCode===37) {
                 window.removeEventListener('keydown', shuffle);
-                console.log(shuffle);
                 e.preventDefault();
                 window.location.hash = (parseInt(window.location.hash.slice(1)) + 1);
                 setTimeout(reAdd, 200);
@@ -462,10 +586,13 @@
         }
     }
 
-    window.addEventListener('keydown', shuffle)
-
     function reAdd() {
         window.addEventListener('keydown', shuffle)
+    }
+
+    function makeMasonry() {
+        window.myMasonry = new Masonry(document.querySelector(`.${CLASSES.MASONRY}`))
+        myMasonry.layout()
     }
 
 })();
