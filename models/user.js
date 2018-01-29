@@ -34,7 +34,7 @@ exports.registerUser = ({username, email, password1}) => {
     return exports.hashPassword(password1)
         .then((hash) => {
             return db.query(
-            `INSERT INTO users (username, email, hashpass) VALUES ($1, $2, $3) RETURNING username, id`, [username, email, hash])
+            `INSERT INTO users (username, email, hashpass, anonymous) VALUES ($1, $2, $3, 'false') RETURNING username, id`, [username, email, hash])
         })
 }
 

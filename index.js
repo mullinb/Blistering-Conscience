@@ -201,7 +201,7 @@ app.post('/login', user.checkLogin, (req, res) => {
 
 app.post('/addComment', (req, res) => {
     if (req.session.user === undefined) {
-        var userid = 16;
+        var userid = 0;
         var username = 'ANON';
     } else {
         var userid = req.session.user.id;
@@ -225,7 +225,7 @@ app.post('/addComment', (req, res) => {
 app.post('/upload', uploader.single('file'), function(req, res) {
     console.log(req.session.user);
     if (req.session.user === undefined) {
-        var userid = 16;
+        var userid = 0;
         var username = "ANON";
     } else {
         var userid = req.session.user.id;
