@@ -92,7 +92,6 @@ app.get('/logout', (req, res) => {
 })
 
 app.get("/pictures", (req, res) => {
-    console.log(req.session);
     db.query(`SELECT * FROM images order by ID desc LIMIT 12`)
     .then((results) => {
         for (var i=0; i < results.rows.length; i++) {
@@ -169,6 +168,11 @@ app.post('/register', user.checkRegister, (req, res) => {
             id: results.rows[0].id
         };
         if (results) {
+            console.log(results);
+            req.session.user = {
+                username: results.rows[0].username,
+                id: results.rows[0].id
+            };
             res.json({
                 success: true,
                 userSession: req.session.user
@@ -223,7 +227,6 @@ app.post('/addComment', (req, res) => {
 })
 
 app.post('/upload', uploader.single('file'), function(req, res) {
-    console.log(req.session.user);
     if (req.session.user === undefined) {
         var userid = 0;
         var username = "ANON";

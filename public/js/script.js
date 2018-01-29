@@ -51,8 +51,10 @@
             panels,
         } = this
         var idx = 0;
-        var element = document.querySelector('.masonry-panel'),
-            style = window.getComputedStyle(element),
+        var element = document.querySelector('.masonry-panel');
+        console.log(element);
+
+        var style = window.getComputedStyle(element),
             width = style.getPropertyValue('width');
             width = width.replace('px', '');
             width = width/window.innerWidth;
@@ -144,9 +146,16 @@
   //     * To make responsive, onResize layout again
   //   * NOTE:: For better performance, please debounce this!
   // */
-    window.addEventListener('resize', () => {
-        myMasonry.layout()
-    })
+
+
+        function makeMasonry() {
+            window.myMasonry = new Masonry(document.querySelector(`.${CLASSES.MASONRY}`))
+            myMasonry.layout()
+        }
+
+        window.addEventListener('resize', () => {
+            myMasonry.layout()
+        })
 
 
     Vue.component('error-message', {
@@ -184,6 +193,7 @@
         },
         methods: {
             register: function() {
+                var self = this;
                 var email = this.registerStuff.email;
                 if (!this.registerStuff.username.length > 0) {
                     this.error.message = 'Please enter a username.'
@@ -213,8 +223,7 @@
                     this.registerStuff.email = email;
                     axios.post('/register', this.registerStuff)
                     .then(function(response) {
-                        app.loggedIn = true;
-                        app.currentUser = response.data.currentUser
+                        self.$emit("loggedin", response.data.userSession)
                     })
                 }
             },
@@ -251,7 +260,7 @@
         props: ["register-now"],
         template:
         `<div class="loginfields">
-            <register v-if="registerNow"></register>
+            <register v-if="registerNow" nv-on:loggedin="registerUser"></register>
             <div v-else>
             <h1> Log in and prove your worth, have ye no mettle, remain ya ANON as we proceed. <i>Think it over</i> </h1>
             <error-message v-if="showError" v-bind:message="error.message"></error-message>
@@ -291,6 +300,9 @@
                     }
                 })
                 }
+            },
+            registerUser: function (val) {
+                self.$emit("loggedin", val);
             },
             showRegister: function(e) {
                 app.registerNow = true;
@@ -537,7 +549,7 @@
                     app.pics.push(response.data.results[i]);
                     app.pics[i].url = "/#" + app.pics[i].id;
                 }
-                myMasonry.layout();
+                setTimeout(makeMasonry, 100);
                 if (response.data.userSession !== undefined) {
                     self.loggedIn = true;
                     self.currentUser = response.data.userSession.username;
@@ -548,7 +560,6 @@
             });
         },
         created: function() {
-            setTimeout(makeMasonry, 200);
         }
     });
 
@@ -570,7 +581,6 @@
         var d = document.documentElement;
         var offset = d.scrollTop + window.innerHeight;
         var height = d.scrollHeight;
-        console.log(offset, height);
 
         if (offset + 5 > height) {
             var page = document.getElementById("main");
@@ -622,9 +632,5 @@
     }
 
 
-    function makeMasonry() {
-        window.myMasonry = new Masonry(document.querySelector(`.${CLASSES.MASONRY}`))
-        myMasonry.layout()
-    }
 
 })();
