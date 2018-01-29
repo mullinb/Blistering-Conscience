@@ -9,6 +9,12 @@ var Store = require('connect-redis')(session);
 let user = require('./models/user');
 const csurf = require('csurf');
 var twitter = require('twitter-text');
+var sslRedirect = require('heroku-ssl-redirect');
+var secure = require('express-force-https');
+
+
+app.use(sslRedirect());
+
 
 
 let dbUrl = process.env.DATABASE_URL || `postgres:${require('./secrets').dbUser}@localhost:5432/imageboard`;

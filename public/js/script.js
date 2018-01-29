@@ -353,11 +353,11 @@
                             description: '',
                             file: null
                         };
+                        myMasonry.layout()
                         console.log(self.formStuff);
                         self.submissionHeading = "That's one down, let it load n don't be shy bout showin what is you've got ";
                         self.loversTitle = "honey";
                         self.$emit("upload-count");
-                        myMasonry.layout();
                 })
             }
         }
