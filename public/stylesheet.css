@@ -155,7 +155,7 @@ body {
     border-radius: 20px;
     border: 2px black solid;
     margin-bottom: 10px;
-    transition: all 500ms linear;
+    background-color: rgba(255, 0, 0, 0.2);
 }
 
 @media(min-width: 992px) {
@@ -175,7 +175,7 @@ body {
 .masonry-panel-content {
     align-items: center;
     justify-content: center;
-    min-height: 200px;
+    min-height: 300px;
     text-align: center;
     overflow: hidden;
 }
@@ -225,7 +225,6 @@ body {
 }
 
 .slide-fade-enter-active {
-  transition: all 1s ease;
 }
 
 .slide-fade-enter {

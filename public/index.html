@@ -9,7 +9,7 @@
         <h1 class="title"> BLISTERING CONSCIENCE </h1>
         <div id="maindiv" v-bind:class="{ noscroll: show }">
         <div class="top">
-            <image-submission v-bind:img-id="imgId"></image-submission>
+            <image-submission v-bind:img-id="imgId" v-on:upload-count="uploadIncrement"></image-submission>
             <login v-if="!loggedIn" v-bind:register-now="registerNow" v-on:loggedin="logUserIn"></login>
             <input type="hidden" name="_csrf" v-bind:value="csrfToken">
             <h2 v-bind:class="headingClassName">{{ heading }} <span class="currentUser">{{currentUser}}</span></h2>

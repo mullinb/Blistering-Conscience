@@ -125,16 +125,16 @@ app.get("/pictures/:id", (req, res) => {
 })
 
 
-app.get("/pictures/page/:page", (req, res) => {
-    console.log(req.params.page);
-    db.query(`SELECT * FROM images order by ID desc OFFSET $1 LIMIT 12`, [req.params.page * 12])
+app.post("/pictures/page/:page", (req, res) => {
+    console.log(req.params.page + "this is the page");
+    console.log(req.body.uls +  "this is the uls");
+    db.query(`SELECT * FROM images order by ID desc OFFSET $1 LIMIT $2`, [((req.params.page * 12) + req.body.uls), (12 - req.body.uls)])
     .then((results) => {
         if (results.rows.length > 0) {
             for (var i=0; i < results.rows.length; i++) {
                 results.rows[i].image = config.s3Url.concat(results.rows[i].image)
                 results.rows[i].url = "/#" + results.rows[i].id
             }
-            console.log(results.rows + "hi!!");
             res.json(results.rows)
         } else {
             console.log('no image')

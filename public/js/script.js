@@ -31,6 +31,7 @@
                 fillers[f].parentNode.removeChild(fillers[f])
             }
         }
+        this.panels = document.querySelectorAll(`.masonry-panel`)
         container.removeAttribute('style')
     }
     /**
@@ -41,18 +42,7 @@
     * This probably doesn't need its own function but felt right to be nice
     * and neat
     */
-    setLayout() {
-        const {
-            container,
-            state,
-        } = this
-        const {
-            heights,
-        } = state
-        this.state.maxHeight = (Math.max(...heights));
-        console.log(this.state.maxHeight);
-        container.style.height = `${this.state.maxHeight + 150}px`
-    }
+
     // /**
     //   * JavaScript method for setting order of each panel based on panels.length and desired number of columns
     // */
@@ -60,7 +50,6 @@
         const {
             panels,
         } = this
-        console.log(this.panels);
         var idx = 0;
         var element = document.querySelector('.masonry-panel'),
             style = window.getComputedStyle(element),
@@ -97,6 +86,29 @@
     /**
     * Pad out layout "columns" with padding elements that make heights equal
     */
+
+    setLayout() {
+        const {
+            container,
+            state,
+        } = this
+        const {
+            heights,
+        } = state
+        var element = document.querySelector('.masonry-panel'),
+            elements = document.querySelectorAll('.masonry-panel'),
+            style = window.getComputedStyle(element),
+            width = style.getPropertyValue('width');
+            width = width.replace('px', '');
+            width = width/window.innerWidth;
+
+        var cols = Math.ceil(1/width) - 1;
+        var number = (Math.ceil(elements.length/cols) + 1);
+        this.state.maxHeight = (Math.max(...heights));
+        var targetHeight = this.state.maxHeight + (16 * number);
+        container.style.height = `${targetHeight}px`
+    }
+
     pad() {
         const {
             container,
@@ -116,6 +128,7 @@
             }
         })
     }
+
 /**
 * Resets and lays out elements
 */
@@ -132,7 +145,6 @@
   //   * NOTE:: For better performance, please debounce this!
   // */
     window.addEventListener('resize', () => {
-        window.myMasonry = new Masonry(document.querySelector(`.${CLASSES.MASONRY}`))
         myMasonry.layout()
     })
 
@@ -332,6 +344,7 @@
                         console.log(self.formStuff);
                         self.submissionHeading = "That's one down, let it load n don't be shy bout showin what is you've got ";
                         self.loversTitle = "honey";
+                        self.$emit("upload-count");
                         myMasonry.layout();
                 })
             }
@@ -471,7 +484,8 @@
             heading: "These be latest photos Chauncey",
             headingClassName: 'heading',
             csrfToken: '',
-            registerNow: false
+            registerNow: false,
+            uploadCount: 0
         },
         methods: {
             hide: function(e) {
@@ -480,7 +494,9 @@
             },
             getMore: function() {
                 var self = this;
-                axios.get('/pictures/page/' + this.page++)
+                axios.post('/pictures/page/' + this.page++, {
+                    uls: this.uploadCount
+                })
                 .then(function (response) {
                     if (response.status === 204) {
                         self.loadMessage = "END OF STREAM/PC LOADLETTER";
@@ -489,7 +505,8 @@
                             app.pics.push(response.data[i]);
                             app.pics[i].url = "/#" + app.pics[i].id;
                         }
-                        myMasonry.layout();
+                        self.uploadCount = 0;
+                        setTimeout(makeMasonry, 100);
                     }
                 })
                 .catch(function (error) {
@@ -504,6 +521,9 @@
             logout: function() {
                 this.loggedIn = false;
                 this.currentUser = '';
+            },
+            uploadIncrement: function() {
+                this.uploadCount += 1;
             }
         },
         mounted: function() {
@@ -543,28 +563,34 @@
         }
     })
     var bottom = false;
-    window.onscroll = function(e) {
+
+    var bottomReacher = window.setInterval(reachedBottom, 1200);
+
+    function reachedBottom (e) {
         var d = document.documentElement;
         var offset = d.scrollTop + window.innerHeight;
         var height = d.scrollHeight;
+        console.log(offset, height);
 
-        console.log(offset, height)
-
-        if (offset + 10 > height) {
+        if (offset + 5 > height) {
             var page = document.getElementById("main");
             if (!page.classList.contains("noscroll")) {
                 //do nothing
                 bottom=true;
                 setTimeout(function() {
                     if (bottom===true) {
+                        window.clearInterval(bottomReacher);
                         app.getMore();
+                        setTimeout(reAddScroll, 1000)
                     }
-                }, 900);
+                }, 500);
             }
         } else {
+            setTimeout(reAddScroll, 1000)
             bottom = false;
         }
-    };
+    }
+
 
     window.addEventListener('keydown', shuffle)
 
@@ -589,6 +615,12 @@
     function reAdd() {
         window.addEventListener('keydown', shuffle)
     }
+
+    function reAddScroll() {
+        window.clearInterval(bottomReacher);
+        bottomReacher = window.setInterval(reachedBottom, 1200);
+    }
+
 
     function makeMasonry() {
         window.myMasonry = new Masonry(document.querySelector(`.${CLASSES.MASONRY}`))
