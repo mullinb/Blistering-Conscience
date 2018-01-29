@@ -225,7 +225,6 @@ body {
 }
 
 .slide-fade-enter-active {
-    transition: all 1s linear;
 }
 
 .slide-fade-enter {

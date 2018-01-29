@@ -52,17 +52,17 @@
         } = this
         var idx = 0;
         var element = document.querySelector('.masonry-panel');
-        console.log(element);
 
         var style = window.getComputedStyle(element),
             width = style.getPropertyValue('width');
-            width = width.replace('px', '');
-            width = width/window.innerWidth;
+        width = width.replace('px', '');
+        width = width/window.innerWidth;
 
         var cols = Math.ceil(1/width) - 1;
         panels.forEach((panel, idx) => {
             panel.style.order = ((idx + 1) % cols === 0) ? cols : (idx + 1) % cols
         })
+        console.log(panels[1]);
     }
 
     populateHeights() {
@@ -76,15 +76,17 @@
         for (let p = 0; p < panels.length; p++) {
             const panel = panels[p]
             const {
-                order: cssOrder,
-                msFlexOrder,
-                height,
-            } = getComputedStyle(panel)
-            const order = cssOrder || msFlexOrder
-            if (!heights[order - 1]) heights[order - 1] = 0
-                heights[order - 1] += parseInt(height, 10)
+                order,
+                height
+            } = window.getComputedStyle(panel)
+            console.log(order, height);
+            if (!heights[order - 1]) {
+                heights[order - 1] = 0;
+            }
+            heights[order - 1] += parseInt(height, 10);
         }
     }
+
     /**
     * Pad out layout "columns" with padding elements that make heights equal
     */
@@ -103,11 +105,10 @@
             width = style.getPropertyValue('width');
             width = width.replace('px', '');
             width = width/window.innerWidth;
-
         var cols = Math.ceil(1/width) - 1;
         var number = (Math.ceil(elements.length/cols) + 1);
         this.state.maxHeight = (Math.max(...heights));
-        var targetHeight = this.state.maxHeight + (16 * number);
+        var targetHeight = this.state.maxHeight + (17 * number);
         container.style.height = `${targetHeight}px`
     }
 
@@ -150,7 +151,6 @@
 
         function makeMasonry() {
             window.myMasonry = new Masonry(document.querySelector(`.${CLASSES.MASONRY}`))
-            myMasonry.layout()
         }
 
         window.addEventListener('resize', () => {
@@ -354,7 +354,6 @@
                             file: null
                         };
                         myMasonry.layout()
-                        console.log(self.formStuff);
                         self.submissionHeading = "That's one down, let it load n don't be shy bout showin what is you've got ";
                         self.loversTitle = "honey";
                         self.$emit("upload-count");
@@ -518,7 +517,7 @@
                             app.pics[i].url = "/#" + app.pics[i].id;
                         }
                         self.uploadCount = 0;
-                        setTimeout(makeMasonry, 100);
+                        setTimeout(makeMasonry, 500);
                     }
                 })
                 .catch(function (error) {
@@ -549,7 +548,7 @@
                     app.pics.push(response.data.results[i]);
                     app.pics[i].url = "/#" + app.pics[i].id;
                 }
-                setTimeout(makeMasonry, 100);
+                setTimeout(makeMasonry, 200);
                 if (response.data.userSession !== undefined) {
                     self.loggedIn = true;
                     self.currentUser = response.data.userSession.username;
