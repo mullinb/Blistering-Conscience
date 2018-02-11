@@ -150,17 +150,25 @@ body {
 }
 
 .masonry-panel {
+    visibility: visible;
+    opacity: 1;
     overflow: hidden;
-    width: 33%;
+    width: 48%;
     border-radius: 20px;
     border: 2px black solid;
     margin-bottom: 10px;
     background-color: rgba(255, 0, 0, 0.2);
+    transition: opacity 2000ms;
+}
+
+.hidden {
+    opacity: 0;
+    visibility: hidden;
 }
 
 @media(min-width: 992px) {
   .masonry-panel {
-      width: 24%;
+      width: 32%;
     }
 }
 
@@ -169,8 +177,6 @@ body {
       width: 98%;
     }
 }
-
-
 
 .masonry-panel-content {
     align-items: center;

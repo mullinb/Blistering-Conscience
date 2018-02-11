@@ -24,6 +24,7 @@
         "multer": "^1.2.0",
         "spiced-pg": "spicedacademy/spiced-pg",
         "twitter-text": "^2.0.3",
-        "uid-safe": "^2.1.4"
+        "uid-safe": "^2.1.4",
+        "vue-masonry": "^0.10.16"
     }
 }

@@ -1,14 +1,16 @@
 (function() {
 
+    var autoPosition = false;
+
     const CLASSES = {
         MASONRY: 'masonry',
         PANEL  : 'masonry-panel',
         PAD    : 'masonry-pad',
     }
 
-    class Masonry {
-
+    class Masonry extends Vue {
     constructor(el) {
+        super();
         this.container = el
         this.panels = document.querySelectorAll(`.masonry-panel`)
         this.state = {
@@ -107,7 +109,7 @@
         this.state.maxHeight = (Math.max(...heights));
         var targetHeight = this.state.maxHeight + (16 * number);
         container.style.height = `${targetHeight}px`
-    }
+        }
 
     pad() {
         const {
@@ -133,10 +135,15 @@
 * Resets and lays out elements
 */
     layout() {
+        var d = document.documentElement;
+        var oldHeight = d.scrollHeight;
         this.reset()
         this.setOrders()
         this.populateHeights()
         this.setLayout()
+        if (autoPosition === true) {
+            adjustWindowHeight (oldHeight, d.scrollHeight)
+        }
         this.pad()
         }
     }
@@ -148,6 +155,59 @@
         myMasonry.layout()
     })
 
+
+    Vue.component('masonry-board', {
+        props: ['pics'],
+        template:
+            `<transition-group name="masonry" class="masonry" tag="div" v-cloak>
+                <masonry-panel  v-for="(pic, index) in pics" :pic="pic" :key="pic.id" v-bind:readyToDisplay="hello" v-bind:pageCount="pageCount" v-cloak></masonry-panel>
+            </transition-group>`,
+        data: function() {
+            return {
+                numberLoaded: 0,
+                pageCount: 0
+            }
+        },
+        methods: {
+            hello: function() {
+                this.numberLoaded++;
+                if (this.numberLoaded === this.pics.length) {
+                    this.pageCount++;
+                    myMasonry.layout();
+                }
+            }
+        }
+    })
+
+    Vue.component('masonry-panel', {
+        props: ['pic', 'readyToDisplay', 'pageCount'],
+        template:
+            `<div v-bind:class=" { 'masonry-panel': true, hidden: isHidden }">
+                <div class="masonry-panel-content">
+                    <a v-bind:href="this.pic.url"><img class="pics" v-bind:src="this.pic.image" v-on:load="hello"> <h2>{{this.pic.title}}</h2></a> <p v-html="this.pic.description"></p>
+                </div>
+            </div>
+            `,
+        data: function() {
+            return {
+                isHidden: true
+            }
+        },
+        methods: {
+            hello: function () {
+                this.readyToDisplay();
+                myMasonry.layout();
+            }
+        },
+        watch: {
+            pageCount: function(newCount, oldCount) {
+                console.log(oldCount, newCount)
+                if (newCount>oldCount) {
+                    this.isHidden = false;
+                }
+            }
+        }
+    })
 
     Vue.component('error-message', {
         props: ['message'],
@@ -341,11 +401,10 @@
                             description: '',
                             file: null
                         };
-                        console.log(self.formStuff);
                         self.submissionHeading = "That's one down, let it load n don't be shy bout showin what is you've got ";
                         self.loversTitle = "honey";
                         self.$emit("upload-count");
-                        myMasonry.layout();
+                        myMasonry.layout()
                 })
             }
         }
@@ -505,8 +564,8 @@
                             app.pics.push(response.data[i]);
                             app.pics[i].url = "/#" + app.pics[i].id;
                         }
+                        autoPosition=true;
                         self.uploadCount = 0;
-                        setTimeout(makeMasonry, 100);
                     }
                 })
                 .catch(function (error) {
@@ -570,7 +629,6 @@
         var d = document.documentElement;
         var offset = d.scrollTop + window.innerHeight;
         var height = d.scrollHeight;
-        console.log(offset, height);
 
         if (offset + 5 > height) {
             var page = document.getElementById("main");
@@ -591,6 +649,11 @@
         }
     }
 
+    function adjustWindowHeight (oldHeight, newHeight) {
+        console.log(oldHeight, newHeight);
+        window.scrollBy(0, (oldHeight - newHeight));
+        autoPosition = false;
+    }
 
     window.addEventListener('keydown', shuffle)
 

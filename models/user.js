@@ -7,7 +7,6 @@ let db = spicedPg(dbUrl);
 let bcrypt = require('bcryptjs');
 
 exports.checkRegister = (req, res, next) => {
-    console.log(req.body);
     let {username, email, password1, password2} = req.body;
     let holdEmail = email;
     if (username.indexOf(" ") >= 0) {

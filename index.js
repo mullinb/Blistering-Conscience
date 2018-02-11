@@ -92,7 +92,6 @@ app.get('/logout', (req, res) => {
 })
 
 app.get("/pictures", (req, res) => {
-    console.log(req.session);
     db.query(`SELECT * FROM images order by ID desc LIMIT 12`)
     .then((results) => {
         for (var i=0; i < results.rows.length; i++) {
@@ -115,7 +114,6 @@ app.get("/pictures/:id", (req, res) => {
             results.rows[0].image = config.s3Url.concat(results.rows[0].image);
             res.json(results.rows)
         } else {
-            console.log('no image')
             res.status(204).end()
         }
     })
@@ -126,8 +124,6 @@ app.get("/pictures/:id", (req, res) => {
 
 
 app.post("/pictures/page/:page", (req, res) => {
-    console.log(req.params.page + "this is the page");
-    console.log(req.body.uls +  "this is the uls");
     db.query(`SELECT * FROM images order by ID desc OFFSET $1 LIMIT $2`, [((req.params.page * 12) + req.body.uls), (12 - req.body.uls)])
     .then((results) => {
         if (results.rows.length > 0) {
@@ -137,7 +133,6 @@ app.post("/pictures/page/:page", (req, res) => {
             }
             res.json(results.rows)
         } else {
-            console.log('no image')
             res.status(204).end()
         }
     })
@@ -151,7 +146,6 @@ app.get('/comments/:id', (req, res) => {
         `SELECT * FROM comments WHERE image_id = $1 order by ID desc`, [req.params.id]
     )
     .then((results) => {
-        console.log(results.rows)
         res.json({
             comments: results.rows
         })
@@ -207,7 +201,6 @@ app.post('/addComment', (req, res) => {
         var userid = req.session.user.id;
         var username = req.session.user.username;
     }
-    console.log(req.body.imageId);
     var message = twitter.htmlEscape(req.body.message);
     hashtags = twitter.extractHashtags(message);
     message = twitter.autoLinkHashtags(message);
@@ -223,7 +216,6 @@ app.post('/addComment', (req, res) => {
 })
 
 app.post('/upload', uploader.single('file'), function(req, res) {
-    console.log(req.session.user);
     if (req.session.user === undefined) {
         var userid = 16;
         var username = "ANON";
@@ -244,13 +236,11 @@ app.post('/upload', uploader.single('file'), function(req, res) {
 
         let readStream = fs.createReadStream(req.file.path);
         readStream.pipe(s3Request);
-        console.log(userid, username)
         s3Request.on('response', s3Response => {
             let wasSuccessful = s3Response.statusCode == 200;
             db.query(
                 `INSERT INTO images(image, user_id, title, description, username) VALUES ($1, $2, $3, $4, $5) returning *`, [req.file.filename, userid, req.body.title, req.body.description, username])
                 .then((results) => {
-                    console.log(results.rows)
                     results.rows[0].image = config.s3Url.concat(results.rows[0].image);
                     res.json({
                         success: wasSuccessful,
