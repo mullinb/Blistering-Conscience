@@ -9,6 +9,12 @@ var Store = require('connect-redis')(session);
 let user = require('./models/user');
 const csurf = require('csurf');
 var twitter = require('twitter-text');
+var sslRedirect = require('heroku-ssl-redirect');
+var secure = require('express-force-https');
+
+
+app.use(sslRedirect());
+
 
 
 let dbUrl = process.env.DATABASE_URL || `postgres:${require('./secrets').dbUser}@localhost:5432/imageboard`;
@@ -163,6 +169,11 @@ app.post('/register', user.checkRegister, (req, res) => {
             id: results.rows[0].id
         };
         if (results) {
+            console.log(results);
+            req.session.user = {
+                username: results.rows[0].username,
+                id: results.rows[0].id
+            };
             res.json({
                 success: true,
                 userSession: req.session.user
