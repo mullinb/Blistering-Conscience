@@ -1,6 +1,6 @@
 # <a href="https://blistering-conscience.herokuapp.com/">Blistering-Conscience</a>
 
-An interactive imageboard in the style of Pinterest, this project demonstrates familiarity with PostGreSQL, Amazon S3, Vue.js, and an (incomplete) approach to masonry-style layout. Vue.js provides for SPA (single page app) functionality, with the page dynamically updating it’s contents as they become available. 
+<h3>An interactive imageboard in the style of Pinterest, this project demonstrates familiarity with PostGreSQL, Amazon S3, Vue.js, and an (incomplete) approach to masonry-style layout. Vue.js provides for SPA (single page app) functionality, with the page dynamically updating it’s contents as they become available.</h3>
 
 <img src="https://s3.amazonaws.com/fluxlymoppings/pics/Screen+Shot+2018-02-27+at+12.08.32.png">
 
