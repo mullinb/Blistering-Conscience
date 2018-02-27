@@ -1,7 +1,7 @@
 # <a href="https://blistering-conscience.herokuapp.com/">Blistering-Conscience</a>
 An interactive imageboard in the style of Pinterest, this project demonstrates familiarity with PostGreSQL, Amazon S3, Vue.js, and an (incomplete) approach to masonry-style layout. Vue.js provides for SPA (single page app) functionality, with the page dynamically updating it’s contents as they become available. 
 
-![ScreenShot](Blistering-Conscience/Screen Shot 2018-02-27 at 12.08.17.png)
+![ScreenShot](Screen Shot 2018-02-27 at 12.08.17.png)
 
 Users can upload photos to the imageboard either anonymously or with an account should they choose to register. Much of the account registration code on the backend was adapted from my <a href=“https://github.com/mullinb/Petition-To-Improve-The-Discourse”>petition project</a>. Both anonymous and registered users are able to comment on photos including using hashtags (borrowed directly from twitter’s own npm package). Hashtags are not yet functional, but the comments are protected from malicious code injection. 
 
